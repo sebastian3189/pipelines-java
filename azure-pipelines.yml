@@ -1,19 +1,57 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
+# ==============================================
+#  Azure DevOps Pipeline - Proyecto INTERESTELAR
+# ==============================================
+# Este pipeline ejecuta tres tareas en paralelo
+# usando tres agentes distintos.
+# ==============================================
 
 trigger:
 - main
 
-pool:
-  vmImage: ubuntu-latest
+# Variables seguras (define myToken y myPassword en Azure DevOps)
+variables:
+  agentPoolName: 'MySelfHostedPool'      # Nombre del pool de tus agentes
+  agentProject: 'INTERESTELAR'           # Nombre del proyecto
+  myToken: '$(myToken)'                  # Token seguro (variable secreta)
+  myPassword: '$(myPassword)'            # Contraseña segura
+  myUser: 'sebatianuribe111'             # Usuario de agente remoto
 
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+# ==============================================
+#  Job 1, 2 y 3 corren en paralelo
+# ==============================================
+jobs:
+- job: BuildProject
+  displayName: "🏗️ Compilar proyecto INTERESTELAR"
+  pool:
+    name: '$(agentPoolName)'
+  steps:
+  - script: |
+      echo "Iniciando compilación en $(Agent.Name)"
+      echo "Compilando código fuente..."
+      sleep 10
+      echo "✅ Compilación completada."
+    displayName: "Compilación del código"
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+- job: RunTests
+  displayName: "🧪 Ejecutar pruebas automáticas"
+  pool:
+    name: '$(agentPoolName)'
+  steps:
+  - script: |
+      echo "Ejecutando pruebas en $(Agent.Name)"
+      echo "Corriendo tests unitarios..."
+      sleep 8
+      echo "✅ Pruebas exitosas."
+    displayName: "Ejecución de pruebas"
+
+- job: DeployApp
+  displayName: "🚀 Desplegar aplicación"
+  pool:
+    name: '$(agentPoolName)'
+  steps:
+  - script: |
+      echo "Desplegando aplicación desde $(Agent.Name)"
+      echo "Ejecutando tareas de despliegue..."
+      sleep 6
+      echo " Despliegue completado correctamente."
+    displayName: "Despliegue de la aplicación"
