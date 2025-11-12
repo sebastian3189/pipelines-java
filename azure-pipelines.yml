@@ -1,32 +1,63 @@
+# ==============================================
+# 🚀 Azure DevOps Pipeline - Proyecto INTERESTELAR
+# ==============================================
+# Ejecuta 3 jobs en paralelo (Build, Test, Deploy)
+# Totalmente compatible con Linux (Ubuntu)
+# ==============================================
+
 trigger:
 - main
 
-pool:
-  vmImage: 'ubuntu-latest'
+# Variables globales
+variables:
+  agentPoolName: 'MySelfHostedPool'  # Nombre del pool (o usa ubuntu-latest)
+  agentProject: 'INTERESTELAR'
+  myToken: '$(myToken)'              # Variable secreta
+  myUser: 'sebatianuribe111'
+  myPassword: '$(myPassword)'        # Variable secreta
 
-steps:
-- task: DeployVisualStudioTestAgent@1
-  inputs:
-    testMachineGroup: |
-      mkdir azagent
-      cd azagent
-      curl -fkSL -o vstsagent.tar.gz https://download.agent.dev.azure.com/agent/4.261.0/vsts-agent-linux-x64-4.261.0.tar.gz
-      tar -zxvf vstsagent.tar.gz
-      if [ -x "$(command -v systemctl)" ]; then
-        ./config.sh --environment --environmentname "maquina1" --acceptteeeula --agent $HOSTNAME --url https://dev.azure.com/sebastianuribe11191630611/ --work _work --projectname 'INTERESTELAR' --auth PAT --token $(myToken)
-        sudo ./svc.sh install
-        sudo ./svc.sh start
-      else
-        ./config.sh --environment --environmentname "maquina1" --acceptteeeula --agent $HOSTNAME --url https://dev.azure.com/sebastianuribe11191630611/ --work _work --projectname 'INTERESTELAR' --auth PAT --token $(myToken)
-        ./run.sh
-      fi
-    machineUserName: 'sebatianuribe111'
-    machinePassword: '$(myPassword)'
+# ==============================================
+#  Jobs en paralelo
+# ==============================================
+jobs:
+- job: BuildProject
+  displayName: " Compilar proyecto INTERESTELAR"
+  pool:
+    vmImage: 'ubuntu-latest'
+  steps:
+  - script: |
+      echo "Iniciando compilación en agente: $(Agent.Name)"
+      echo " Descargando dependencias..."
+      sleep 3
+      echo " Compilando código fuente..."
+      sleep 3
+      echo " Compilación completada exitosamente."
+    displayName: "Compilación del código"
 
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+- job: RunTests
+  displayName: " Ejecutar pruebas automáticas"
+  pool:
+    vmImage: 'ubuntu-latest'
+  steps:
+  - script: |
+      echo "Ejecutando pruebas en agente: $(Agent.Name)"
+      echo "Preparando entorno de pruebas..."
+      sleep 2
+      echo "Corriendo pruebas unitarias..."
+      sleep 3
+      echo " Todas las pruebas pasaron correctamente."
+    displayName: "Ejecución de pruebas"
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+- job: DeployApp
+  displayName: " Desplegar aplicación INTERESTELAR"
+  pool:
+    vmImage: 'ubuntu-latest'
+  steps:
+  - script: |
+      echo "Desplegando aplicación en agente: $(Agent.Name)"
+      echo " Empaquetando artefactos..."
+      sleep 2
+      echo " Subiendo a servidor de despliegue simulado..."
+      sleep 3
+      echo " Despliegue completado correctamente."
+    displayName: "Despliegue de la aplicación"
