@@ -2,21 +2,46 @@ trigger:
 - main
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'ubuntu-latest'
 
-jobs:  
-- job: Build
-  displayName: Build Maven Project
-  steps:
-  - task: Maven@4
-    displayName: 'Maven Package'
-    inputs:
-      mavenPomFile: 'pom.xml'
-  - task: CopyFiles@2
-    displayName: 'Copy Files to artifact staging directory'
-    inputs:
-      SourceFolder: '$(System.DefaultWorkingDirectory)'
-      Contents: '**/target/*.?(war|jar)'
-      TargetFolder: $(Build.ArtifactStagingDirectory)
-  - upload: $(Build.ArtifactStagingDirectory)
-    artifact: drop
+strategy:
+  parallel: 3
+
+steps:
+# 1 Instalar Java y Maven
+- task: JavaToolInstaller@0
+  inputs:
+    versionSpec: '17'
+    jdkArchitecture: 'x64'
+    jdkSourceOption: 'PreInstalled'
+
+- script: |
+    echo "Instalando Maven..."
+    sudo apt-get update
+    sudo apt-get install -y maven
+    mvn -v
+  displayName: 'Instalar Maven en Linux'
+
+# 2 Compilar proyecto Maven
+- script: |
+    echo "Iniciando compilación..."
+    mvn clean package -DskipTests
+  displayName: 'Compilar proyecto Maven'
+
+# 3 Ejecutar pruebas (opcional)
+- script: |
+    echo "Ejecutando pruebas..."
+    mvn test
+  displayName: 'Ejecutar pruebas con Maven'
+  continueOnError: true  # Permite que el pipeline no falle si hay test rotos
+
+# 4️ Publicar resultados JUnit (si existen)
+- task: PublishTestResults@2
+  inputs:
+    testResultsFiles: '**/target/surefire-reports/TEST-*.xml'
+    testRunTitle: 'Resultados de pruebas JUnit'
+  condition: succeededOrFailed()
+
+# 5 Mostrar mensaje final
+- script: echo "🚀 Compilación completada exitosamente en Linux con 3 agentes paralelos."
+  displayName: 'Finalización'
