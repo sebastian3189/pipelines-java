@@ -32,7 +32,7 @@ jobs:
   dependsOn: Build
   condition: succeeded()
   environment:
-    name: 'deploy'              #  Tu environment existente
+    name: 'maquina1'              #  Tu environment existente
     resourceType: VirtualMachine
     tags: 'linux-app'           #  Etiqueta de las VMs (ajústala según tu entorno)
 
